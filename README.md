@@ -1,5 +1,8 @@
-## To make into an executable:
+## libraries needed:
+#### pip install customtkinter
 #### pip install pyinstaller
+
+## To make into an executable:
 #### pyinstaller --onefile --windowed tkinterTest.py
 ### Simple as that
 
