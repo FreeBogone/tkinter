@@ -2,41 +2,38 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import csv
+import customtkinter
+import pandas as pd
 
+data = None
+
+customtkinter.set_appearance_mode("dark")
+
+#open file and read data
 def open_csv_file():
-    file_path = filedialog.askopenfilename(title="Open CSV File", filetypes=[("CSV files", "*.csv")])
+    file_path = filedialog.askopenfilename(title="Open CSV File", filetypes=[("CSV files", "*.csv")])    
     if file_path:
-        display_csv_data(file_path)
+        data = pd.read_csv(file_path)
+        #display_csv_data(data)
 
-def display_csv_data(file_path):
-    try:
-        with open(file_path, 'r', newline='') as file:
-            csv_reader = csv.reader(file)
-            header = next(csv_reader) #read header row
-            tree.delete(*tree.get_children()) #clear current data
+# display data in gui
+#def display_csv_data(data):
+    # under construction
 
-            tree["columns"] = header
-            for col in header:
-                tree.heading(col, text=col)
-                tree.column(col, width=100)
 
-            for row in csv_reader:
-                tree.insert("", "end", values=row)
-
-            status_label.config(text=f"CSV file loaded: {file_path}")
-
-    except Exception as e:
-        status_label.config(text=f"Error: {str(e)}")
-
-root = tk.Tk()
-
-button = ttk.Button(root, text="Import CSV File", command=open_csv_file)
+root = customtkinter.CTk()
+#-------------------------------------------------------------------------------
+# button
+button = customtkinter.CTkButton(root, text="Import CSV File", command=open_csv_file)
 button.pack(padx=20, pady=10)
 
+# data view
 tree = ttk.Treeview(root, show="headings")
 tree.pack(padx=20, pady=20, fill="both", expand=True)
 
-status_label = tk.Label(root, text="", padx=20, pady=10)
+# bottom label
+status_label = customtkinter.CTkLabel(root, text="", padx=20, pady=10)
 status_label.pack()
-
+#-------------------------------------------------------------------------------
 root.mainloop()
+
