@@ -28,13 +28,22 @@ def page1(root):
 def page2(root):
     page = tk.Frame(root)
     page.grid()
-
-    tk.Label(page, text = 'This is page 2').grid(row = 0)
+    tk.Label(page, text = 'This is Page 2').grid(row = 0)
     tk.Button(page, text = 'To page 1', command = lambda:changepage('Page1')).grid(row = 1, column = 0)
+    tk.Button(page, text = 'To page 3', command = lambda:changepage('Page3')).grid(row = 1, column = 1)
+#end page2
+
+def page3(root):
+    page = tk.Frame(root)
+    page.grid()
+
+    tk.Label(page, text = 'This is page 3').grid(row = 0)
+    tk.Button(page, text = 'To page 1', command = lambda:changepage('Page1')).grid(row = 1, column = 0)
+    tk.Button(page, text = 'To page 2', command = lambda:changepage('Page2')).grid(row = 1, column = 1)
     
     #import CSV button
     button = tk.Button(root, text="Import CSV File", command=open_csv_file).grid(row = 2, column = 0)
-#end page2
+#end page3
 
 # destroys all child widgets of current 
 # page and navigates to new page
@@ -46,6 +55,8 @@ def changepage(pageName):
         page1(root)
     elif pageName == 'Page2':
         page2(root)
+    elif pageName == 'Page3':
+        page3(root)
 #end changepage
 
 # login
