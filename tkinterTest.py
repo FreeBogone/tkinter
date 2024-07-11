@@ -2,12 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import csv
-import customtkinter
 import pandas as pd
 
-data = None
-
-customtkinter.set_appearance_mode("dark")
+data = None # initialize data without any value
 
 #open file and read data
 def open_csv_file():
@@ -21,10 +18,10 @@ def open_csv_file():
     # under construction
 
 
-root = customtkinter.CTk()
+root = tk.Tk()
 #-------------------------------------------------------------------------------
 # button
-button = customtkinter.CTkButton(root, text="Import CSV File", command=open_csv_file)
+button = tk.Button(root, text="Import CSV File", command=open_csv_file)
 button.pack(padx=20, pady=10)
 
 # data view
@@ -32,7 +29,7 @@ tree = ttk.Treeview(root, show="headings")
 tree.pack(padx=20, pady=20, fill="both", expand=True)
 
 # bottom label
-status_label = customtkinter.CTkLabel(root, text="", padx=20, pady=10)
+status_label = tk.Label(root, text="", padx=20, pady=10)
 status_label.pack()
 #-------------------------------------------------------------------------------
 root.mainloop()
