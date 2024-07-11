@@ -7,9 +7,55 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates
 
+data = None # initialize data without any value
+
+def page1(root):
+    page = tk.Frame(root)
+    page.grid()
+    tk.Label(page, text = 'Login').grid(row = 0)
+    
+    username = tk.StringVar()
+    password = tk.StringVar()
+
+    tk.Label (page, text = 'Username').grid(row = 1, column = 0)
+    uname = tk.Entry(page, textvariable=username).grid(row = 1, column = 1)
+    tk.Label (page, text = 'Password').grid(row = 2, column = 0)
+    pword = tk.Entry(page, textvariable=password).grid(row = 2, column = 1)
+
+    tk.Button(page, text='Login', command=lambda:login(username, password)).grid(row = 3, column = 0)
+#end page1
+
+def page2(root):
+    page = tk.Frame(root)
+    page.grid()
+
+    tk.Label(page, text = 'This is page 2').grid(row = 0)
+    tk.Button(page, text = 'To page 1', command = lambda:changepage('Page1')).grid(row = 1, column = 0)
+    
+    #import CSV button
+    button = tk.Button(root, text="Import CSV File", command=open_csv_file).grid(row = 2, column = 0)
+#end page2
+
+# destroys all child widgets of current 
+# page and navigates to new page
+def changepage(pageName):
+    global pagenum, root
+    for widget in root.winfo_children():
+        widget.destroy()
+    if pageName == 'Page1':
+        page1(root)
+    elif pageName == 'Page2':
+        page2(root)
+#end changepage
+
+# login
+def login(uname, pword):
+    print(f'Username: {uname.get()} Password: {pword.get()}')
+    changepage('Page2')
+#end login
+
 #open file and read data
 def open_csv_file():
-    global data
     file_path = filedialog.askopenfilename(title="Open CSV File", filetypes=[("CSV files", "*.csv")])    
     if file_path:
         data = pd.read_csv(file_path)
@@ -38,7 +84,7 @@ def display_csv_data(data):
 
     # Create a new frame and add it to your Tkinter window
     graph_frame = tk.Frame(root)
-    graph_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+    graph_frame.grid(row=3)
 
     # Create a canvas and add it to your new frame
     canvas = FigureCanvasTkAgg(fig, master=graph_frame)
@@ -46,15 +92,8 @@ def display_csv_data(data):
     canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 #end display_csv_data
 
+# APP START
 root = tk.Tk()
-#-------------------------------------------------------------------------------
-# button
-button = tk.Button(root, text="Import CSV File", command=open_csv_file)
-button.pack(padx=20, pady=10)
-
-# bottom label
-status_label = tk.Label(root, text="", padx=20, pady=10)
-status_label.pack()
-#-------------------------------------------------------------------------------
+page1(root)
 root.mainloop()
-
+# END APP START
