@@ -39,7 +39,6 @@ def Login(root):
     password_entry.grid(row=1, column=1, padx=5, pady=5)
     
     ttk.Button(page, text='Login', command=lambda: log_in(username_entry.get(), password_entry.get())).pack(pady=10)
-    ttk.Button(page, text='Create Account', command=lambda: changepage('CreateAccount')).pack(pady=10)
 # end Login
 
 def page2(root):
@@ -339,5 +338,16 @@ def view_budgets(root):
 root = tk.Tk()
 root.title("Personal Finance App")
 set_styles()
-Login(root)
+
+#determine if userAuth file is empty, if empty open Create Login page. if not empty, open login page. This is for security
+
+with open('userAuth.txt', 'r') as f:
+    # read first character
+    first_char = f.read(1)
+ 
+    if not first_char:
+        CreateAccount(root)
+    else:
+        Login(root)
+        
 root.mainloop()
