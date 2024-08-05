@@ -11,6 +11,7 @@ data = None  # initialize data without any value
 categories = {}  # Dictionary to store categories and their allocations
 monthly_budgets = {}  # Dictionary to store the monthly budgets
 monthly_allocations = {}  # Dictionary to store allocations for each month
+original_budgets = {} # Dictionary for original budgets
 
 def set_styles():
     style = ttk.Style()
@@ -42,17 +43,18 @@ def Login(root):
     ttk.Button(page, text='Login', command=lambda: log_in(username, password)).pack(pady=10)
 # end Login
 
+# Main Page (Page 2)
 def page2(root):
     page = ttk.Frame(root, padding="10")
     page.pack(expand=True, fill=tk.BOTH)
     
-    ttk.Label(page, text='This is Page 2').pack(pady=10)
+    ttk.Label(page, text='Home Page').pack(pady=10)
     
     nav_frame = ttk.Frame(page)
     nav_frame.pack(pady=10)
     
     ttk.Button(nav_frame, text='To Login Page', command=lambda: changepage('Login')).grid(row=0, column=0, padx=5, pady=5)
-    ttk.Button(nav_frame, text='To Page 3', command=lambda: changepage('Page3')).grid(row=0, column=1, padx=5, pady=5)
+    ttk.Button(nav_frame, text='View Monthly Budgets', command=lambda: changepage('ViewBudgets')).grid(row=0, column=1, padx=5, pady=5)
     
     month_frame = ttk.Frame(page)
     month_frame.pack(pady=10)
@@ -85,36 +87,89 @@ def page2(root):
     ttk.Button(alloc_frame, text='Allocate Budget', command=allocate_budget).grid(row=1, column=0, columnspan=2, pady=5)
 # end page2
 
-def page3(root):
+# View Budgets Page (Page 3)
+def view_budgets(root):
     page = ttk.Frame(root, padding="10")
     page.pack(expand=True, fill=tk.BOTH)
     
-    ttk.Label(page, text='This is page 3').pack(pady=10)
+    ttk.Label(page, text='View Monthly Budgets').pack(pady=10)
     
-    nav_frame = ttk.Frame(page)
-    nav_frame.pack(pady=10)
+    month_frame = ttk.Frame(page)
+    month_frame.pack(pady=10)
     
-    ttk.Button(nav_frame, text='To Login Page', command=lambda: changepage('Login')).grid(row=0, column=0, padx=5, pady=5)
-    ttk.Button(nav_frame, text='To Page 2', command=lambda: changepage('Page2')).grid(row=0, column=1, padx=5, pady=5)
+    ttk.Label(month_frame, text='Month:').grid(row=0, column=0, padx=5, pady=5)
+    selected_month = tk.StringVar()
+    monthchoosen = ttk.Combobox(month_frame, width=15, textvariable=selected_month)
+    monthchoosen['values'] = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
+    monthchoosen.grid(row=0, column=1, padx=5, pady=5)
+    monthchoosen.current()
     
-    ttk.Button(page, text="Import CSV File", command=open_csv_file).pack(pady=10)
+    # Frame for the table and remaining budget
+    budget_table_frame = ttk.Frame(page)
+    budget_table_frame.pack(pady=10)
+
+    # Table for displaying budget allocations
+    columns = ('Category', 'Amount Allocated')
+    budget_tree = ttk.Treeview(budget_table_frame, columns=columns, show='headings')
+    budget_tree.heading('Category', text='Category')
+    budget_tree.heading('Amount Allocated', text='Amount Allocated')
+    budget_tree.pack()
+
+    def display_budget():
+        # Clear previous entries in the table
+        for row in budget_tree.get_children():
+            budget_tree.delete(row)
+        
+        month = selected_month.get()
+        if month in monthly_budgets:
+            total_budget = monthly_budgets[month]
+            allocations = monthly_allocations.get(month, {})
+            remaining_budget = total_budget - sum(allocations.values())
+            
+            # Update table with category allocations
+            for category, amount in allocations.items():
+                budget_tree.insert('', 'end', values=(category, f"${amount:.2f}"))
+
+            # Show total budget and remaining budget
+            #ttk.Label(page, text=f"Total Budget for {month}: ${total_budget:.2f}").pack(pady=5)
+            #ttk.Label(page, text=f"Remaining Budget for {month}: ${remaining_budget:.2f}").pack(pady=5)
+        else:
+            messagebox.showerror("Error", "No budget set for the selected month.")
+        
+        # Reset the month selection to the default value
+        monthchoosen.current()
+
+    ttk.Button(month_frame, text='Show Budget', command=display_budget).grid(row=1, column=0, columnspan=2, pady=5)
     
-    # Button to view budgets
-    ttk.Button(page, text="View Monthly Budgets", command=lambda: changepage('ViewBudgets')).pack(pady=10)
-# end page3
+    # Function to reset the page
+    def reset_page():
+        budget_tree.delete(*budget_tree.get_children())
+        selected_month.set('')
+        monthchoosen.current()
+    
+    # Add a reset button to clear the view
+    ttk.Button(page, text='Reset View', command=reset_page).pack(pady=5)
+
+    # Button to export allocations to CSV
+    ttk.Button(page, text='Export to CSV', command=lambda: export_to_csv(selected_month.get())).pack(pady=5)
+
+    # Button to plot budget and allocations
+    ttk.Button(page, text='Plot Budget and Allocations', command=lambda: plot_budget_and_allocations(selected_month.get())).pack(pady=5)
+
+    # Button to return to the home page
+    ttk.Button(page, text='Return to Home Page', command=lambda: changepage('Page2')).pack(pady=10)
+# end view_budgets
 
 # destroys all child widgets of current 
 # page and navigates to new page
 def changepage(pageName):
-    global pagenum, root
+    global root
     for widget in root.winfo_children():
         widget.destroy()
     if pageName == 'Login':
         Login(root)
     elif pageName == 'Page2':
         page2(root)
-    elif pageName == 'Page3':
-        page3(root)
     elif pageName == 'ViewBudgets':
         view_budgets(root)
 # end changepage
@@ -127,11 +182,12 @@ def log_in(uname, pword):
 # Submit Budget
 def submit_budget(month):
     if month:
+        original_budgets[month] = total.get()
         monthly_budgets[month] = total.get()
         monthly_allocations[month] = {}  # Initialize an empty dictionary for the month
         messagebox.showinfo("Success", f"Monthly total budget for {month} of {monthly_budgets[month]} submitted.")
     else:
-        messagebox.showerror("Error", "Please select a month.")
+        messagebox.showerror("Error", "Please select a valid month.")
 # end submit_budget
 
 # Add Category
@@ -231,69 +287,52 @@ def plot_expenses():
     root.mainloop()
 # end plot_expenses
 
-# View Budgets Page
-def view_budgets(root):
-    page = ttk.Frame(root, padding="10")
-    page.pack(expand=True, fill=tk.BOTH)
-    
-    ttk.Label(page, text='View Monthly Budgets').pack(pady=10)
-    
-    month_frame = ttk.Frame(page)
-    month_frame.pack(pady=10)
-    
-    ttk.Label(month_frame, text='Month:').grid(row=0, column=0, padx=5, pady=5)
-    selected_month = tk.StringVar()
-    monthchoosen = ttk.Combobox(month_frame, width=15, textvariable=selected_month)
-    monthchoosen['values'] = ('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')
-    monthchoosen.grid(row=0, column=1, padx=5, pady=5)
-    monthchoosen.current()
-    
-    # Frame for the table and remaining budget
-    budget_table_frame = ttk.Frame(page)
-    budget_table_frame.pack(pady=10)
+def export_to_csv(month):
+    if month not in monthly_allocations:
+        messagebox.showerror("Error", "No allocations found for the selected month.")
+        return
 
-    # Table for displaying budget allocations
-    columns = ('Category', 'Amount Allocated')
-    budget_tree = ttk.Treeview(budget_table_frame, columns=columns, show='headings')
-    budget_tree.heading('Category', text='Category')
-    budget_tree.heading('Amount Allocated', text='Amount Allocated')
-    budget_tree.pack()
+    allocations = monthly_allocations[month]
+    if not allocations:
+        messagebox.showerror("Error", "No allocations found for the selected month.")
+        return
 
-    def display_budget():
-        # Clear previous entries in the table
-        for row in budget_tree.get_children():
-            budget_tree.delete(row)
-        
-        month = selected_month.get()
-        if month in monthly_budgets:
-            total_budget = monthly_budgets[month]
-            allocations = monthly_allocations.get(month, {})
-            remaining_budget = total_budget - sum(allocations.values())
-            
-            # Update table with category allocations
-            for category, amount in allocations.items():
-                budget_tree.insert('', 'end', values=(category, f"${amount:.2f}"))
+    file_path = "BankTransactions.csv"  # Specify the file path explicitly
 
-            # Show total budget and remaining budget
-            ttk.Label(page, text=f"Total Budget for {month}: ${total_budget:.2f}").pack(pady=5)
-            ttk.Label(page, text=f"Remaining Budget for {month}: ${remaining_budget:.2f}").pack(pady=5)
-        else:
-            messagebox.showerror("Error", "No budget set for the selected month.")
-        
-        # Reset the month selection to the default value
-        monthchoosen.current()
+    # Create a DataFrame and save to CSV
+    df = pd.DataFrame(list(allocations.items()), columns=["Category", "Amount Allocated"])
+    df.to_csv(file_path, index=False)
+    messagebox.showinfo("Success", f"Allocations for {month} have been exported to {file_path}.")
+# end export_to_csv
 
-    ttk.Button(month_frame, text='Show Budget', command=display_budget).grid(row=1, column=0, columnspan=2, pady=5)
-    
-    # Function to reset the page
-    def reset_page():
-        budget_tree.delete(*budget_tree.get_children())
-        selected_month.set('')
-        monthchoosen.current()
-    
-    # Add a reset button to clear the view
-    ttk.Button(page, text='Reset View', command=reset_page).pack(pady=5)
-    
+def plot_budget_and_allocations(month):
+    if month not in original_budgets:
+        messagebox.showerror("Error", "No budget set for the selected month.")
+        return
+
+    original_budget = original_budgets[month]
+    allocations = monthly_allocations.get(month, {})
+
+    # Create lists for labels and amounts
+    labels = list(allocations.keys())
+    amounts = list(allocations.values())
+    allocated_total = sum(amounts)
+
+    # Add the remaining budget to the amounts list
+    remaining_budget = original_budget - allocated_total
+    if remaining_budget > 0:
+        labels.append('Remaining Budget')
+        amounts.append(remaining_budget)
+
+    # Calculate the sizes as proportions of the original budget
+    sizes = [amount / original_budget for amount in amounts]
+
+    fig, ax = plt.subplots()
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140)
+    ax.set_title(f'Budget Allocations for {month}')
+
+    plt.show()
+
 # Main
 root = tk.Tk()
 root.title("Personal Finance App")
