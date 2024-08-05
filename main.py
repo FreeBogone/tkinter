@@ -27,19 +27,19 @@ def Login(root):
     
     ttk.Label(page, text='Login').pack(pady=10)
 
-    username = tk.StringVar()
-    password = tk.StringVar()
-
     input_frame = ttk.Frame(page)
     input_frame.pack(pady=10)
     
     ttk.Label(input_frame, text='Username').grid(row=0, column=0, padx=5, pady=5)
-    ttk.Entry(input_frame, textvariable=username).grid(row=0, column=1, padx=5, pady=5)
+    username_entry = ttk.Entry(input_frame)
+    username_entry.grid(row=0, column=1, padx=5, pady=5)
     
     ttk.Label(input_frame, text='Password').grid(row=1, column=0, padx=5, pady=5)
-    ttk.Entry(input_frame, textvariable=password, show='*').grid(row=1, column=1, padx=5, pady=5)
+    password_entry = ttk.Entry(input_frame, show='*')
+    password_entry.grid(row=1, column=1, padx=5, pady=5)
     
-    ttk.Button(page, text='Login', command=lambda: log_in(username, password)).pack(pady=10)
+    ttk.Button(page, text='Login', command=lambda: log_in(username_entry.get(), password_entry.get())).pack(pady=10)
+    ttk.Button(page, text='Create Account', command=lambda: changepage('CreateAccount')).pack(pady=10)
 # end Login
 
 def page2(root):
@@ -103,6 +103,25 @@ def page3(root):
     ttk.Button(page, text="View Monthly Budgets", command=lambda: changepage('ViewBudgets')).pack(pady=10)
 # end page3
 
+def CreateAccount(root):
+    page = ttk.Frame(root, padding="10")
+    page.pack(expand=True, fill=tk.BOTH)
+    
+    ttk.Label(page, text='Create Account').pack(pady=10)
+
+    input_frame = ttk.Frame(page)
+    input_frame.pack(pady=10)
+    
+    ttk.Label(input_frame, text='Username').grid(row=0, column=0, padx=5, pady=5)
+    username_entry = ttk.Entry(input_frame)
+    username_entry.grid(row=0, column=1, padx=5, pady=5)
+    
+    ttk.Label(input_frame, text='Password').grid(row=1, column=0, padx=5, pady=5)
+    password_entry = ttk.Entry(input_frame, show='*')
+    password_entry.grid(row=1, column=1, padx=5, pady=5)
+    
+    ttk.Button(page, text='Create Login', command=lambda: create_login(username_entry.get(), password_entry.get())).pack(pady=10)
+
 # destroys all child widgets of current 
 # page and navigates to new page
 def changepage(pageName):
@@ -115,14 +134,36 @@ def changepage(pageName):
         page2(root)
     elif pageName == 'Page3':
         page3(root)
+    elif pageName == 'CreateAccount':
+        CreateAccount(root)
     elif pageName == 'ViewBudgets':
         view_budgets(root)
 # end changepage
 
 # login
 def log_in(uname, pword):
-    changepage('Page2')
+    loginStr = uname + ':' + pword
+    f = open('userAuth.txt', 'r')
+    for line in f:
+        if loginStr in line:
+            print(loginStr)
+            changepage('Page2')
+            return
+        else:
+            print('Login Information Not Found')
+
+    f.close()
 # end login
+
+# create logim
+def create_login(uname, pword):
+    loginStr = uname + ':' + pword
+    f = open('userAuth.txt', 'a')
+    f.write('\n' + loginStr)
+    f.close() 
+
+    changepage('Login')
+# end create login
 
 # Submit Budget
 def submit_budget(month):
