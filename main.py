@@ -51,8 +51,7 @@ def page2(root):
     
     nav_frame = ttk.Frame(page)
     nav_frame.pack(pady=10)
-    
-    ttk.Button(nav_frame, text='To Login Page', command=lambda: changepage('Login')).grid(row=0, column=0, padx=5, pady=5)
+
     ttk.Button(nav_frame, text='View Monthly Budgets', command=lambda: changepage('ViewBudgets')).grid(row=0, column=1, padx=5, pady=5)
     
     month_frame = ttk.Frame(page)
@@ -196,16 +195,21 @@ def changepage(pageName):
 
 # login
 def log_in(uname, pword):
+    found = False
     loginStr = uname + ':' + pword
     f = open('userAuth.txt', 'r')
     for line in f:
         if loginStr in line:
-            print(loginStr)
-            changepage('Page2')
-            return
+            found = True
         else:
-            print('Login Information Not Found')
+            found = False
 
+    if found:
+        messagebox.showinfo("", "Login Successful")
+        changepage('Page2')
+    else:
+        messagebox.showerror("", "Invalid username or password")
+        
     f.close()
 # end login
 
